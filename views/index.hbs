@@ -1,0 +1,46 @@
+<h1>CHAT</h1>
+<div>
+    <ul class="mensajes">
+        
+    </ul>
+</div>
+<div class="usersConnected"></div>
+<input type="text" class="mensaje">
+<input type="text" class="nick">
+<button class="btnEnviar">ENVIAR</button>
+<script>
+    let socket = io();
+    $('.btnEnviar').click(()=>{
+        //alert('Se ha pulsado el botón')
+        socket.emit('chat:message', {
+            mensaje: $('.mensaje').val(),
+            nick: $('.nick').val()
+        })
+    })
+
+    socket.on('chat:message', (data)=>{
+        console.log(data)
+        $('.mensajes').append($('<li>').append(`<strong>${data.nick}</strong>:${data.mensaje}`))
+        showNotificacion(data.nick, data.mensaje)
+    })
+
+    socket.on('chat:users', users =>{
+        $('.usersConnected').text(`Usuarios conectados: ${users}`)
+    })
+
+    function showNotificacion(nick, mensaje){
+        const options = {
+                body: mensaje,
+                dir: 'ltr'
+            }
+        if(Notification.permission === 'granted'){
+            let notification = new Notification(`${nick} ha escrito un nuevo mensaje`, options)
+        }else if(Notification.permission !== 'denied'){
+            Notification.requestPermission((permission)=>{
+                if(permission === 'granted'){
+                    let notification = new Notification(`${nick} ha escrito un nuevo mensaje`, options)
+                }
+            })
+        }
+    }
+</script>
